@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/_50sdp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardCornerRadius="@dimen/_10sdp"
+    app:cardElevation="@dimen/_10sdp"
+    android:layout_marginBottom="@dimen/_6sdp">
+
+    <ImageView
+        android:id="@+id/bookmarkIcon"
+        android:contentDescription="@string/imageview"
+        android:layout_width="@dimen/_40sdp"
+        android:layout_height="@dimen/_40sdp"
+        android:gravity="center"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:layout_gravity="center_vertical"
+        android:layout_marginHorizontal="@dimen/_10sdp"
+        />
+
+    <TextView
+        android:id="@+id/bookmarkName"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:singleLine="true"
+        android:text="@string/bookmark"
+        android:textColor="@color/black"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:layout_marginStart="@dimen/_55sdp"/>
+
+</com.google.android.material.card.MaterialCardView>
