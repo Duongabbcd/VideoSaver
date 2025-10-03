@@ -24,4 +24,13 @@
     <string name="one">1</string>
     <string name="searching">Searching</string>
     <string name="imageview">imageView</string>
+
+    //download files
+    <string name="title_grant_Permission">Grant Permission</string>
+    <string name="message_grant_Permission">Please grant all permissions to access additional functionality.</string>
+    <string name="goto_setting">Go to setting</string>
+    <string name="cancel">Cancel</string>
+    <string name="permission_denied">Permission denied</string>
+
+
 </resources>

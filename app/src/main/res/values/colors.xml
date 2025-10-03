@@ -10,6 +10,7 @@
 
 
     <!--    custom colors-->
+    <color name="dark_blue">#0A7CC3</color>
     <color name="cool_blue">#0091EA</color>
     <color name="cool_green">#64DD17</color>
     <color name="black_green">#0B9B11</color>

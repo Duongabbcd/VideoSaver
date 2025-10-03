@@ -352,7 +352,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
                 }
 
                 // Clear clipboard after showing it
-                clipboard.setPrimaryClip(ClipData.newPlainText("", "")) // Clear content
+                // Clear content
+//                clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
             }
         }
     }

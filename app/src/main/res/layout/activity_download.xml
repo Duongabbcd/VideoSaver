@@ -4,28 +4,65 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingHorizontal="@dimen/_20sdp"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <TextView
+        android:id="@+id/urlTitle"
+        android:text="URL"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:paddingStart="@dimen/_10sdp"
+        android:background="@drawable/custom_left_corner"
+        android:layout_marginTop="@dimen/_40sdp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_width="@dimen/_50sdp"
+        android:layout_height="@dimen/_40sdp" />
 
     <TextView
         android:id="@+id/urlInfo"
         android:textColor="@color/black"
-        android:textSize="12sp"
-        android:layout_marginHorizontal="@dimen/_10sdp"
+        android:textSize="18sp"
+        android:gravity="center_vertical"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:paddingHorizontal="@dimen/_6sdp"
+        android:background="@drawable/custom_right_corner"
+        android:layout_marginTop="@dimen/_40sdp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/urlTitle"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_width="0dp"
+        android:layout_height="@dimen/_40sdp" />
+    
+    <TextView
+        android:id="@+id/videoTitle"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/urlInfo"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/allVideoSolutions"
+        app:layout_constraintTop_toBottomOf="@id/videoTitle"
+        android:layout_marginTop="@dimen/_24sdp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
     <ProgressBar
         android:id="@+id/progressBarBottomSheet"
         android:indeterminateTint="@color/black"
-        android:layout_width="@dimen/_40sdp"
-        android:layout_height="@dimen/_40sdp"
-        app:layout_constraintTop_toBottomOf="@id/urlInfo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:layout_width="@dimen/_30sdp"
+        android:layout_height="@dimen/_30sdp"
+        app:layout_constraintBottom_toBottomOf="@id/allVideoSolutions"
+        app:layout_constraintTop_toTopOf="@id/allVideoSolutions"
+        app:layout_constraintStart_toStartOf="@id/allVideoSolutions"
+        app:layout_constraintEnd_toEndOf="@id/allVideoSolutions"/>
 
     <WebView
         android:id="@+id/webView"

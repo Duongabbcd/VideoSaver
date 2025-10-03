@@ -6,6 +6,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.videosaver.remote.ApifyService
+import com.example.videosaver.remote.model.scraper.VideoItem
+import com.example.videosaver.remote.model.scraper.VideoSolution
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,6 +19,12 @@ class VideoViewModel @Inject constructor(
 
     private val _rawJson = MutableLiveData<String>()
     val rawJson: LiveData<String> = _rawJson
+
+    private val _videoItem = MutableLiveData<VideoItem>()
+    val videoItem: LiveData<VideoItem>  = _videoItem
+
+    private val _allVideSolution = MutableLiveData<List<VideoSolution>>()
+    val allVideSolution : LiveData<List<VideoSolution>> = _allVideSolution
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
@@ -30,8 +38,9 @@ class VideoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = apifyService.extractVideo(mapOf("url" to url))
-                val rawJson = response.string()  // ← this works now
-                _rawJson.value = rawJson
+                val videoItem = response.first()
+                _videoItem.value = videoItem
+                _allVideSolution.value = videoItem.formats
                 _error.value = null
             } catch (e: Exception) {
                 Log.e("VideoViewModel", "Failed to fetch video data", e)

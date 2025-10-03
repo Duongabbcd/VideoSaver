@@ -19,6 +19,7 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import com.example.videosaver.base.BaseActivity
 import com.example.videosaver.databinding.ActivityBrowseBinding
+import com.example.videosaver.screen.download.DownloadActivity
 import com.example.videosaver.screen.home.subscreen.HomeFragment.Companion.checkForInternet
 import com.google.android.material.snackbar.Snackbar
 
@@ -51,6 +52,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>(ActivityBrowseBinding
 
             refreshBtn.setOnClickListener {
                 webView.loadUrl(formatUrl(urlNew))
+            }
+
+            downloadBtn.setOnClickListener {
+                startActivity(Intent(this@BrowseActivity, DownloadActivity::class.java).apply {
+                    putExtra("downloadedURL",   urlNew)
+                })
             }
 
             binding.topSearchBar.setOnEditorActionListener { v, actionId, event ->
@@ -122,7 +129,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>(ActivityBrowseBinding
                 view: WebView?, request: WebResourceRequest?, error: WebResourceError?
             ) {
                 Log.e("WebViewError", "Error loading page: ${error?.description}")
-                Toast.makeText(context, "Failed to load page", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(context, "Failed to load page", Toast.LENGTH_SHORT).show()
             }
         }
 

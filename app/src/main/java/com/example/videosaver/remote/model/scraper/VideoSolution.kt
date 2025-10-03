@@ -1,6 +1,6 @@
 package com.example.videosaver.remote.model.scraper
 
-data class VideoSolutions(
+data class VideoSolution(
     var abr: Double = 0.0,
     var acodec: String = "",
     var aspect_ratio: Double = 0.0,

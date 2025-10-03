@@ -24,7 +24,7 @@ data class VideoItem(
     val filesize_approx: String,
     val format: String,
     val format_id: String,
-    val formats: List<VideoSolutions>,
+    val formats: List<VideoSolution>,
     val fulltitle: String,
     val http_headers: HttpHeadersX,
     val id: String,

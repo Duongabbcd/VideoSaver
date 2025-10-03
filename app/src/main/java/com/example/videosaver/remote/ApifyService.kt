@@ -1,5 +1,6 @@
 package com.example.videosaver.remote
 
+import com.example.videosaver.remote.model.scraper.ScraperVideo
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -11,7 +12,7 @@ interface ApifyService {
     @POST("v2/acts/clear_aisle~my-actor/run-sync-get-dataset-items")
     suspend fun extractVideo(
         @Body body: Map<String, String>
-    ): ResponseBody
+    ): ScraperVideo
 }
 
 data class VideoFormat(
