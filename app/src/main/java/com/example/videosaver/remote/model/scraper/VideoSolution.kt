@@ -1,6 +1,6 @@
 package com.example.videosaver.remote.model.scraper
 
-data class VideoSolution(
+data class VideoSolution1(
     var abr: Double = 0.0,
     var acodec: String = "",
     var aspect_ratio: Double = 0.0,
@@ -32,3 +32,20 @@ data class VideoSolution(
     var video_ext: String = "",
     var width: Int = 0
 )
+
+data class VideoSolution(
+    var quality : String = "",
+    var formatNote : String = "",
+    var resolution : String = "",
+    var fps: String ="",
+    var size : Int = 0,
+    var url : String = "",
+    var hasAudio : Boolean = false,
+    var hasVideo : Boolean = false,
+) {
+    companion object {
+         val VIDEO_SOLUTION_DEFAULT = VideoSolution(
+            "", "", "", "", 0, "", false, false
+        )
+    }
+}

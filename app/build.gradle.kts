@@ -107,4 +107,6 @@ dependencies {
     val youtubedlAndroid = "0.5.1"
 //    implementation("com.github.yausername:youtubedl-android:0.5.1")
     implementation("com.github.maxrave-dev:kotlin-youtubeExtractor:0.0.7")
+
+    implementation("com.github.microshow:RxFFmpeg:4.9.0-lite")
 }

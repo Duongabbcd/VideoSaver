@@ -19,6 +19,17 @@
         android:layout_width="@dimen/_32sdp"
         android:layout_height="@dimen/_32sdp" />
 
+    <ImageView
+        android:id="@+id/iconHome"
+        android:src="@drawable/icon_home"
+        android:padding="@dimen/_4sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:contentDescription="@string/imageview"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="@dimen/_32sdp"
+        android:layout_height="@dimen/_32sdp" />
+
 
     <androidx.media3.ui.PlayerView
         android:id="@+id/playerView"
@@ -52,6 +63,7 @@
 
         <Button
             android:id="@+id/downloadButton"
+            android:visibility="gone"
             android:layout_marginStart="@dimen/_5sdp"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/_40sdp"

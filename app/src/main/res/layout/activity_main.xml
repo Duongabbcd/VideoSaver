@@ -61,6 +61,7 @@
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/homeTab"
+                android:visibility="gone"
                 android:layout_width="@dimen/_40sdp"
                 app:layout_constraintEnd_toStartOf="@+id/refreshBtn"
                 app:layout_constraintTop_toTopOf="parent"

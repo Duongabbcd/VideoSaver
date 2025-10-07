@@ -1,14 +1,14 @@
-package com.example.videosaver.screen.player
+package com.example.videosaver.screen.home.player
 
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -19,16 +19,34 @@ import com.example.videosaver.databinding.ActivityPlayerBinding
 import com.example.videosaver.utils.Common
 import com.example.videosaver.utils.PermissionUtils
 import com.example.videosaver.R
+import com.example.videosaver.remote.model.scraper.VideoItem
 import com.example.videosaver.remote.model.scraper.VideoSolution
+import com.example.videosaver.screen.home.MainActivity
+import com.example.videosaver.utils.VideoSupporter
+import com.example.videosaver.viewmodel.video.MediaFile
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.apply
 
 
 class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding::inflate) {
     private lateinit var videoSolution: VideoSolution
+    private var videoInDevice: MediaFile? = null // ✅ make nullable instead of lateinit
     private val videoUrl by lazy {
         intent.getStringExtra("playerURL") ?: ""
     }
+    private val videoName by lazy {
+        intent.getStringExtra("videoName") ?: ""
+    }
+
+    private val downloadedVideo by lazy {
+     intent.getStringExtra("mediaFile") ?: ""
+    }
+
+    private var playedURL = ""
+
     private var player: ExoPlayer? = null
     private var hasInitialized = false
 
@@ -43,25 +61,41 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
             handlePermissionResult(permissions)
         }
 
-        videoSolution = Gson().fromJson(videoUrl, VideoSolution::class.java)
-
         binding.apply {
-            if(videoUrl.isNotEmpty()) {
-                playButton.setOnClickListener {
-                    if (!hasInitialized) {
-                        initializePlayer(videoUrl)
-                    } else {
-                        player?.playWhenReady = true
-                    }
-                }
+            videoSolution = Gson().fromJson(videoUrl, VideoSolution::class.java)
+            videoInDevice = try {
+                Gson().fromJson(downloadedVideo, MediaFile::class.java)
+            } catch (e: Exception) {
+                null
+            }
 
-                downloadButton.setOnClickListener {
-                   downloadMediaFiles()
+            videoInDevice?.let { media ->
+                if (media.name.isNotEmpty()) {
+                    initializePlayer(media.uri)
+                    return@apply
                 }
+            }
 
-                iconBack.setOnClickListener {
-                    finish()
+            playedURL = videoSolution.url
+
+            playButton.setOnClickListener {
+                if (!hasInitialized) {
+                    initializePlayer(playedURL)
+                } else {
+                    player?.playWhenReady = true
                 }
+            }
+
+//            downloadButton.setOnClickListener {
+//                downloadMediaFiles()
+//            }
+
+            iconBack.setOnClickListener {
+                finish()
+            }
+
+            iconHome.setOnClickListener {
+                startActivity(Intent(this@PlayerActivity, MainActivity::class.java))
             }
         }
     }
@@ -97,6 +131,19 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
 
     private fun actuallyDownloadMediaFile() {
         Log.d(TAG,"actuallyDownloadMediaFile: $videoSolution")
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@PlayerActivity, "Start downloading", Toast.LENGTH_SHORT).show()
+                }
+                val uri = VideoSupporter.downloadMedia(this@PlayerActivity,playedURL , videoName,isVideo = true)
+                uri?.let {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@PlayerActivity, "Download successfully", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 
     private fun showGoToSettingsDialog() {
@@ -116,23 +163,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>(ActivityPlayerBinding
         }
     }
 
-    private fun downloadMediaFiles() {
-
-        val missingPermissions = PermissionUtils.getMissingMediaPermissions(this@PlayerActivity)
-
-        if (missingPermissions.isEmpty()) {
-            // All permissions granted
-            actuallyDownloadMediaFile()
-        } else {
-            // Request the missing permissions using launcher
-            requestPermissionLauncher.launch(missingPermissions.toTypedArray())
-            return
-        }
-
-    }
 
 
     private fun initializePlayer(url: String) {
+        println("initializePlayer: $url")
         hasInitialized = true
         binding.apply {
             playerView.visibility = PlayerView.VISIBLE

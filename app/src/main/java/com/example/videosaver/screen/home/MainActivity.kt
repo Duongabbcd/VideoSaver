@@ -40,10 +40,12 @@ import com.example.videosaver.screen.browse.BrowseActivity
 import com.example.videosaver.screen.download.DownloadActivity
 import com.example.videosaver.screen.home.adapter.TabAdapter
 import com.example.videosaver.screen.home.subscreen.DisplayURL
-import com.example.videosaver.screen.home.subscreen.ProgressFragment
-import com.example.videosaver.screen.home.subscreen.SavedFragment
+import com.example.videosaver.screen.home.subscreen.process.ProgressFragment
+import com.example.videosaver.screen.home.subscreen.saved.SavedFragment
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
 
+@AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate){
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -353,7 +355,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
 
                 // Clear clipboard after showing it
                 // Clear content
-//                clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
+                 clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
             }
         }
     }

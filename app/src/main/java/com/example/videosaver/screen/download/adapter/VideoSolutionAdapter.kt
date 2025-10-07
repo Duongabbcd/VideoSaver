@@ -4,9 +4,12 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.videosaver.databinding.ItemVideoSolutionBinding
 import com.example.videosaver.remote.model.scraper.VideoSolution
 import com.example.videosaver.R
+import com.example.videosaver.remote.model.scraper.VideoItem
+import com.example.videosaver.utils.Common.gone
 import com.example.videosaver.utils.Utils
 import com.example.videosaver.utils.Utils.getFileSize
 import kotlinx.coroutines.CoroutineScope
@@ -14,9 +17,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class VideoSolutionAdapter(private val onClickListener: (VideoSolution) -> Unit) :
+class VideoSolutionAdapter(private val onClickListener: (VideoSolution, String) -> Unit) :
     RecyclerView.Adapter<VideoSolutionAdapter.VideoSolutionViewHolder>() {
     private lateinit var context: Context
+    private  var videoName = ""
     private val allVideoSolutions = mutableListOf<VideoSolution>()
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -43,6 +47,10 @@ class VideoSolutionAdapter(private val onClickListener: (VideoSolution) -> Unit)
         return allVideoSolutions.size
     }
 
+    fun getVideoName(input: String) {
+        videoName = input
+    }
+
     fun submitList(input: List<VideoSolution>) {
         allVideoSolutions.clear()
         allVideoSolutions.addAll(input)
@@ -53,47 +61,30 @@ class VideoSolutionAdapter(private val onClickListener: (VideoSolution) -> Unit)
         RecyclerView.ViewHolder(binding.root) {
             fun bind(position: Int) {
                 val videoSolution = allVideoSolutions[position]
-
+                println("VideoSolutionViewHolder: $videoSolution")
                 binding.apply {
-                    val videoURL = if(videoSolution.url.isEmpty()) videoSolution.manifest_url else videoSolution.url
+                    solution.text = videoSolution.quality
+                    val videoURL = videoSolution.url
                     CoroutineScope(Dispatchers.IO).launch {
                         val size = getFileSize(videoURL)
                         println("File size: $size bytes")
                         // update UI here if needed
                         withContext(Dispatchers.Main) {
-                            binding.size.text = Utils.convertIntoFileSize(size)
+                            binding.size.text = Utils.convertIntoFileSize(videoSolution.size.toLong())
                         }
                     }
 
-                    val displayIcon = when {
-                        videoSolution.audio_ext.isNotEmpty() -> R.drawable.icon_audio
-                        videoSolution.video_ext.isNotEmpty() -> R.drawable.icon_video
-                       else -> R.drawable.icon_audio
-                    }
+                    Glide.with(context).load(R.drawable.icon_video).placeholder(R.drawable.icon_video).error(R.drawable.icon_video).into(binding.icon)
 
-                    icon.setImageResource(displayIcon)
-                    solution.text =  displaySolution(videoSolution)
+
+//                    icon.setImageResource(displayIcon)
+//                    solution.text =  displaySolution(videoSolution)
 
                     root.setOnClickListener {
-                        onClickListener(videoSolution)
+                        onClickListener(videoSolution, videoName)
                     }
                 }
             }
 
-        private fun displaySolution(solution: VideoSolution) : String {
-            return when{
-                solution.format.contains("sd", true) -> "640x480"
-                solution.format.contains("hd", true) -> "1280x720"
-                else -> {
-                    if(solution.width > 0 && solution.height > 0) {
-                        "${solution.width}x${solution.height}"
-                    } else {
-                        "SD"
-                    }
-                }
-            }
-
-
-        }
     }
 }

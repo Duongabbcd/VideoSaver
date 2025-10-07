@@ -1,6 +1,6 @@
 package com.example.videosaver.remote.model.scraper
 
-data class VideoItem(
+data class VideoItem1(
     val _filename: String,
     val _has_drm: String,
     val _type: String,
@@ -13,7 +13,7 @@ data class VideoItem(
     val description: String,
     val display_id: String,
     val downloader_options: DownloaderOptions,
-    val duration: Int,
+    val duration: Double,
     val duration_string: String,
     val dynamic_range: String,
     val epoch: Int,
@@ -50,5 +50,20 @@ data class VideoItem(
     val video_ext: String,
     val webpage_url: String,
     val webpage_url_basename: String,
-    val webpage_url_domain: String
+    val webpage_url_domain: String,
+    val directVideoUrl: String,
+)
+
+data class VideoItem(
+    val title: String,
+    val thumbnail: String,
+    val duration: Double,
+    val availableFormats: List<VideoSolution>,
+)
+
+data class TiktokVideoItem(
+    val title: String,
+    val thumbnail: String,
+    val duration: Double,
+    val finalUrl: String,
 )
