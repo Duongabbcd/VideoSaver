@@ -26,6 +26,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.example.videosaver.R
+import com.example.videosaver.advance.ui.proxies.ProxiesViewModel
+import com.example.videosaver.advance.ui.setting.SettingsViewModel
 import com.example.videosaver.base.BaseActivity
 import com.example.videosaver.databinding.ActivityMainBinding
 import com.example.videosaver.databinding.BookmarkDialogBinding
@@ -48,6 +50,7 @@ import com.example.videosaver.screen.home.subscreen.DisplayURL
 import com.example.videosaver.screen.home.subscreen.process.ProgressFragment
 import com.example.videosaver.screen.home.subscreen.saved.SavedFragment
 import com.example.videosaver.utils.advance.fragment.FragmentFactory
+import com.example.videosaver.utils.advance.util.SharedPrefHelper
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -57,9 +60,14 @@ import kotlin.text.set
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate){
     private lateinit var mainAdapter: MainAdapter
-    private val mainViewModel: MainViewModel by viewModels()
+     val mainViewModel: MainViewModel by viewModels()
+     val proxiesViewModel: ProxiesViewModel by viewModels()
+     val settingsViewModel: SettingsViewModel by viewModels()
     @Inject
     lateinit var fragmentFactory: FragmentFactory
+
+    @Inject
+    lateinit var sharedPrefHelper: SharedPrefHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

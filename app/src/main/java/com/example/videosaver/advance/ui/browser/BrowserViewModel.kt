@@ -4,6 +4,7 @@ import androidx.databinding.ObservableField
 import androidx.databinding.ObservableInt
 import androidx.lifecycle.MutableLiveData
 import com.example.videosaver.advance.data.local.room.entity.VideoInfo
+import com.example.videosaver.advance.ui.setting.SettingsViewModel
 import com.example.videosaver.advance.ui.webtab.WebTab
 import com.example.videosaver.base.BaseViewModel
 import com.example.videosaver.utils.SingleLiveEvent
@@ -18,7 +19,7 @@ class BrowserViewModel @Inject constructor() : BaseViewModel() {
         var instance: BrowserViewModel? = null
     }
 
-//    var settingsModel: SettingsViewModel? = null
+    var settingsModel: SettingsViewModel? = null
 
     val openPageEvent = SingleLiveEvent<WebTab>()
 

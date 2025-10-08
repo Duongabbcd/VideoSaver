@@ -1,6 +1,14 @@
 package com.example.videosaver.advance.ui.browser
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.PowerManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,7 +16,12 @@ import android.webkit.ServiceWorkerClient
 import android.webkit.ServiceWorkerController
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.view.GravityCompat
+import androidx.databinding.Observable
 import androidx.databinding.ObservableField
 import androidx.databinding.ObservableInt
 import androidx.fragment.app.Fragment
@@ -17,22 +30,33 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.videosaver.advance.BrowserServicesProvider
+import com.example.videosaver.advance.ui.HistoryViewModel
 import com.example.videosaver.advance.ui.browser.detectedVideos.GlobalVideoDetectionModel
 import com.example.videosaver.advance.ui.browser.hometab.BrowserHomeFragment
 import com.example.videosaver.advance.ui.browser.webtab.WebTabFragment
 import com.example.videosaver.advance.ui.setting.SettingsViewModel
 import com.example.videosaver.advance.ui.webtab.WebTab
 import com.example.videosaver.base.BaseFragment
+import com.example.videosaver.R
+import com.example.videosaver.base.BaseFragment2
 import com.example.videosaver.databinding.FragmentBrowseBinding
+import com.example.videosaver.databinding.FragmentBrowserHomeBinding
+import com.example.videosaver.screen.home.MainActivity
 import com.example.videosaver.screen.home.MainViewModel
 import com.example.videosaver.utils.SingleLiveEvent
+import com.example.videosaver.utils.advance.proxy_utils.CustomProxyController
 import com.example.videosaver.utils.advance.proxy_utils.OkHttpProxyClient
 import com.example.videosaver.utils.advance.util.AppLogger
+import com.example.videosaver.utils.advance.util.AppUtil
 import com.example.videosaver.utils.advance.util.ContentType
 import com.example.videosaver.utils.advance.util.CookieUtils
+import com.example.videosaver.utils.advance.util.SharedPrefHelper
 import com.example.videosaver.utils.advance.util.VideoUtils
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -43,19 +67,57 @@ const val HOME_TAB_INDEX = 0
 
 const val TAB_INDEX_KEY = "TAB_INDEX_KEY"
 
-class BrowserFragment : BaseFragment<FragmentBrowseBinding>(FragmentBrowseBinding::inflate), BrowserServicesProvider {
-    private val settingsModel : SettingsViewModel by viewModels()
-    private val browserViewModel : BrowserViewModel by viewModels()
-    private val mainViewModel : MainViewModel by viewModels()
+class BrowserFragment : BaseFragment2(), BrowserServicesProvider {
 
-    private lateinit var videoDetectionModel: GlobalVideoDetectionModel
-    @Inject
-    lateinit var okHttpProxyClient: OkHttpProxyClient
+    companion object {
+        fun newInstance() = BrowserFragment()
+        var DESKTOP_USER_AGENT =
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
+
+        // TODO different agents for different androids
+        var MOBILE_USER_AGENT =
+            "Mozilla/5.0 (Linux; Android 12; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36"
+    }
+
+    private lateinit var tabsAdapter: TabsFragmentStateAdapter
+
+//    private lateinit var drawerAdapter: WebTabsAdapter
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    private lateinit var tabsAdapter: TabsFragmentStateAdapter
+
+    private var mainActivity = requireActivity() as MainActivity
+
+    @Inject
+    lateinit var appUtil: AppUtil
+
+    @Inject
+    lateinit var proxyController: CustomProxyController
+
+    @Inject
+    lateinit var sharedPrefHelper: SharedPrefHelper
+
+    @Inject
+    lateinit var okHttpProxyClient: OkHttpProxyClient
+
+    lateinit var binding: FragmentBrowserHomeBinding
+
+    private val  browserViewModel: BrowserViewModel  by viewModels()
+
+    private val mainViewModel: MainViewModel  by viewModels()
+
+    private val  historyModel: HistoryViewModel by viewModels()
+
+    private val settingsModel: SettingsViewModel by viewModels()
+
+    private lateinit var videoDetectionModel: GlobalVideoDetectionModel
+
+    private val compositeDisposable = CompositeDisposable()
+
+    private var backPressedOnce = false
+
+    private lateinit var dataBinding: FragmentBrowseBinding
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -106,39 +168,6 @@ class BrowserFragment : BaseFragment<FragmentBrowseBinding>(FragmentBrowseBindin
         }
     }
 
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val swController = ServiceWorkerController.getInstance()
-        swController.setServiceWorkerClient(serviceWorkerClient)
-        swController.serviceWorkerWebSettings.allowContentAccess = true
-
-        videoDetectionModel =
-            ViewModelProvider(this, viewModelFactory)[GlobalVideoDetectionModel::class.java]
-        tabsAdapter = TabsFragmentStateAdapter(emptyList())
-        binding.apply {
-            viewPager.adapter = tabsAdapter
-            viewPager.setSwipeThreshold(500)
-            viewPager.isUserInputEnabled = false
-            viewPager.setOnGoThroughListener(onGoThroughListener)
-
-            browserViewModel.start()
-            handlePressWebTabEvent()
-            handleOpenTabEvent()
-            handleCloseWebTabEventEvent()
-            handleUpdateWebTabEventEvent()
-        }
-    }
-
-    override fun shareWebLink() {
-
-    }
-
-    override fun bookmarkCurrentUrl() {
-
-    }
-
-
     inner class TabsFragmentStateAdapter(private var webTabsRoutes: List<WebTab>) :
         FragmentStateAdapter(this) {
         fun setRoutes(newRoutes: List<WebTab>) {
@@ -171,24 +200,12 @@ class BrowserFragment : BaseFragment<FragmentBrowseBinding>(FragmentBrowseBindin
         return BrowserHomeFragment.newInstance()
     }
 
-    private fun createTabFragment(index: Int): Fragment {
-        val fragment = WebTabFragment.newInstance().apply {
-            val args = Bundle().apply {
-                putInt(TAB_INDEX_KEY, index)
-            }
-            arguments = args
-        }
-
-        return fragment
-    }
-
     override fun getOpenTabEvent(): SingleLiveEvent<WebTab> {
         return browserViewModel.openPageEvent
     }
 
     override fun getCloseTabEvent(): SingleLiveEvent<WebTab> {
         return browserViewModel.closePageEvent
-
     }
 
     override fun getUpdateTabEvent(): SingleLiveEvent<WebTab> {
@@ -207,9 +224,109 @@ class BrowserFragment : BaseFragment<FragmentBrowseBinding>(FragmentBrowseBindin
         return WebTab("error", "error")
     }
 
+    private fun createTabFragment(index: Int): Fragment {
+        val fragment = WebTabFragment.newInstance().apply {
+            val args = Bundle().apply {
+                putInt(TAB_INDEX_KEY, index)
+            }
+            arguments = args
+        }
+
+        return fragment
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        val swController = ServiceWorkerController.getInstance()
+        swController.setServiceWorkerClient(serviceWorkerClient)
+        swController.serviceWorkerWebSettings.allowContentAccess = true
+
+        videoDetectionModel =
+            ViewModelProvider(this, viewModelFactory)[GlobalVideoDetectionModel::class.java]
+
+
+        videoDetectionModel.settingsModel = mainActivity.settingsViewModel
+        browserViewModel.settingsModel = mainActivity.settingsViewModel
+
+
+        mainActivity.mainViewModel.browserServicesProvider = this
+
+        tabsAdapter = TabsFragmentStateAdapter(emptyList())
+
+//        drawerAdapter = WebTabsAdapter(emptyList(), tabsListener)
+
+//        val webTabsManagerLayout =
+//            WrapContentLinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+//        webTabsManagerLayout.reverseLayout = true
+
+        val color = getThemeBackgroundColor()
+
+        dataBinding = FragmentBrowseBinding.inflate(inflater, container, false).apply {
+            this.viewPager.adapter = tabsAdapter
+            this.viewPager.setSwipeThreshold(500)
+            this.viewPager.setOnGoThroughListener(onGoThroughListener)
+            this.viewPager.isUserInputEnabled = false
+//            this.tabsList.layoutManager = webTabsManagerLayout
+//            this.tabsList.adapter = drawerAdapter
+//            this.drawerLayoutContent.setBackgroundColor(color)
+
+            this.viewModel = browserViewModel
+        }
+
+//        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+//            onBackPressed()
+//        }
+
+        videoDetectionModel.downloadButtonState.addOnPropertyChangedCallback(object :
+            Observable.OnPropertyChangedCallback() {
+            override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    browserViewModel.workerM3u8MpdEvent.value =
+                        videoDetectionModel.downloadButtonState.get()
+                }
+            }
+        })
+
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (ContextCompat.checkSelfPermission(
+                    mainActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
+        }
+
+        return dataBinding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        browserViewModel.start()
+        handlePressWebTabEvent()
+        handleOpenTabEvent()
+        handleCloseWebTabEventEvent()
+        handleOpenNavDrawerEvent()
+        handleUpdateWebTabEventEvent()
+        checkIsPowerSaveMode()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        browserViewModel.stop()
+        videoDetectionModel.stop()
+        compositeDisposable.clear()
+    }
+
+    override fun getHistoryVModel(): HistoryViewModel {
+        return this.historyModel
+    }
 
     override fun getWorkerM3u8MpdEvent(): MutableLiveData<DownloadButtonState> {
-        return browserViewModel.workerM3u8MpdEvent    }
+        return browserViewModel.workerM3u8MpdEvent
+    }
 
     override fun getWorkerMP4Event(): MutableLiveData<DownloadButtonState> {
         return browserViewModel.workerMP4Event
@@ -217,8 +334,18 @@ class BrowserFragment : BaseFragment<FragmentBrowseBinding>(FragmentBrowseBindin
 
     override fun getCurrentTabIndex(): ObservableInt {
         return browserViewModel.currentTab
-
     }
+
+//    private val tabsListener = object : WebTabListener {
+//        override fun onCloseTabClicked(webTab: WebTab) {
+//
+//            browserViewModel.closePageEvent.value = webTab
+//        }
+//
+//        override fun onSelectTabClicked(webTab: WebTab) {
+//            browserViewModel.selectWebTabEvent.value = webTab
+//        }
+//    }
 
     private fun handlePressWebTabEvent() {
         browserViewModel.selectWebTabEvent.observe(viewLifecycleOwner) { webTab ->
@@ -270,6 +397,29 @@ class BrowserFragment : BaseFragment<FragmentBrowseBinding>(FragmentBrowseBindin
         }
     }
 
+    private fun handleOpenNavDrawerEvent() {
+        mainViewModel.openNavDrawerEvent.observe(viewLifecycleOwner) {
+            val isOpened = dataBinding.drawerLayout.isDrawerOpen(GravityCompat.START)
+            if (isOpened) {
+                dataBinding.drawerLayout.close()
+            } else {
+                dataBinding.drawerLayout.open()
+            }
+        }
+    }
+
+    private fun checkIsPowerSaveMode() {
+        val context = this.requireContext()
+        val pwManager = getSystemService(context, PowerManager::class.java)
+        if (pwManager?.isPowerSaveMode == true) {
+            MaterialAlertDialogBuilder(context).setTitle(R.string.warning)
+                .setMessage(R.string.powerSave).setPositiveButton(
+                    R.string.ok
+                ) { dialog, _ ->
+                    dialog.dismiss()
+                }.show()
+        }
+    }
 
     private val onGoThroughListener = object : OnGoThroughListener {
         override fun onRightGoThrough() {
@@ -279,17 +429,4 @@ class BrowserFragment : BaseFragment<FragmentBrowseBinding>(FragmentBrowseBindin
             }
         }
     }
-
-
-    companion object {
-        fun newInstance() = BrowserFragment()
-        var DESKTOP_USER_AGENT =
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
-
-        // TODO different agents for different androids
-        var MOBILE_USER_AGENT =
-            "Mozilla/5.0 (Linux; Android 12; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36"
-    }
-
-
 }

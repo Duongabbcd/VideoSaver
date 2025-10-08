@@ -43,4 +43,7 @@
         <item>@color/cool_blue</item>
         <item>@color/purple_500</item>
     </integer-array>
+
+
+    <color name="color_gray_2">#7a7a7a</color>
 </resources>

@@ -1,7 +1,10 @@
 package com.example.videosaver.advance.di.module
 
+import com.example.videosaver.advance.data.local.HistoryLocalDataSource
 import com.example.videosaver.advance.data.local.TopPagesLocalDataSource
 import com.example.videosaver.advance.data.remote.TopPagesRemoteDataSource
+import com.example.videosaver.advance.data.repository.HistoryRepository
+import com.example.videosaver.advance.data.repository.HistoryRepositoryImpl
 import com.example.videosaver.advance.data.repository.TopPagesRepository
 import com.example.videosaver.advance.data.repository.TopPagesRepositoryImpl
 import com.example.videosaver.advance.di.qualifier.LocalData
@@ -50,4 +53,13 @@ abstract class RepositoryModule {
     // endregion
 
     // ... same pattern for VideoRepository, HistoryRepository, etc.
+
+    @Singleton
+    @Binds
+    abstract fun bindHistoryRepositoryImpl(historyRepository: HistoryRepositoryImpl): HistoryRepository
+
+    @Singleton
+    @Binds
+    @LocalData
+    abstract fun bindHistoryLocalDataSource(localDataSource: HistoryLocalDataSource): HistoryRepository
 }

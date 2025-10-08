@@ -5,8 +5,11 @@ import androidx.databinding.Observable
 import androidx.databinding.ObservableBoolean
 import androidx.databinding.ObservableField
 import androidx.databinding.ObservableInt
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.videosaver.R
+import com.example.videosaver.advance.data.local.model.Suggestion
 import com.example.videosaver.advance.data.local.room.entity.HistoryItem
 import com.example.videosaver.advance.data.repository.HistoryRepository
 import com.example.videosaver.base.BaseViewModel
@@ -33,9 +36,10 @@ class WebTabViewModel @Inject constructor(
     val thisTabIndex = ObservableInt(-1)
     val isDownloadDialogShown = ObservableBoolean(false)
     lateinit var tabPublishSubject: PublishSubject<String>
-    var listTabSuggestions: ObservableField<MutableList<HistoryItem>> = ObservableField(
-        mutableListOf()
-    )
+
+    private val _listTabSuggestions = MutableLiveData<List<HistoryItem>>()
+    val listTabSuggestions: LiveData<List<HistoryItem>> = _listTabSuggestions
+
     val isShowProgress = ObservableBoolean(true)
     val progress = ObservableInt(0)
     val progressIcon = ObservableInt(R.drawable.ic_refresh_24dp)
@@ -102,9 +106,9 @@ class WebTabViewModel @Inject constructor(
                 withContext(this.coroutineContext) {
                     val list = getListTabSuggestions().blockingFirst().reversed()
                     if (list.size > 50) {
-                        listTabSuggestions.set(list.subList(0, 50).toMutableList())
+                        _listTabSuggestions.value = list.subList(0, 50).toMutableList()
                     } else {
-                        listTabSuggestions.set(list.toMutableList())
+                        _listTabSuggestions.value = list.toMutableList()
                     }
                 }
             } catch (e: Throwable) {

@@ -32,8 +32,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/tabs_list"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:items="@{viewModel.tabs}" />
+                android:layout_height="match_parent" />
 
         </LinearLayout>
 

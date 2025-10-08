@@ -39,4 +39,19 @@
     <string name="browser_search_hint">Search in DuckDuckGo or enter url</string>
     <string name="player_resolution">video resolution as in the player</string>
 
+    <string name="desktop_mode_on">Desktop Mode On</string>
+    <string name="desktop_mode_off">Desktop Mode Off</string>
+
+    <string name="history">History</string>
+    <string name="bookmarks_list">Bookmark list</string>
+    <string name="share_link">Share link</string>
+    <string name="desktop_mode">Desktop mode</string>
+    <string name="settings">Setting</string>
+    <string name="help">Share link</string>
+    <string name="proxy">Proxy</string>
+    <string name="dark_mode">Dark mode</string>
+
+    <string name="powerSave">Power save mode detected!\nVideo detection not working, turn off power save mode!</string>
+    <string name="warning">Warning! Power save Mode.</string>
+    <string name="ok">OK</string>
 </resources>

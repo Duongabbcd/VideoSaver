@@ -3,13 +3,15 @@ package com.example.videosaver.advance
 import androidx.databinding.ObservableField
 import androidx.databinding.ObservableInt
 import androidx.lifecycle.MutableLiveData
+import com.example.videosaver.advance.ui.HistoryViewModel
+import com.example.videosaver.advance.ui.browser.BrowserFragment
 import com.example.videosaver.advance.ui.browser.DownloadButtonState
 import com.example.videosaver.advance.ui.webtab.WebTab
 import com.example.videosaver.utils.SingleLiveEvent
 
 
 interface BrowserServicesProvider : TabManagerProvider, PageTabProvider,
-//    HistoryProvider,
+    HistoryProvider,
     WorkerEventProvider, CurrentTabIndexProvider
 
 interface TabManagerProvider {
@@ -26,9 +28,9 @@ interface PageTabProvider {
     fun getPageTab(position: Int): WebTab
 }
 
-//interface HistoryProvider {
-//    fun getHistoryVModel(): HistoryViewModel
-//}
+interface HistoryProvider {
+    fun getHistoryVModel(): HistoryViewModel
+}
 
 interface WorkerEventProvider {
     fun getWorkerM3u8MpdEvent(): MutableLiveData<DownloadButtonState>
