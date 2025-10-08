@@ -49,6 +49,10 @@ class ProgressFragment : BaseFragment<FragmentProgressBinding>(FragmentProgressB
         }
     }
 
+    override fun shareWebLink(){}
+
+    override fun bookmarkCurrentUrl(){}
+
     companion object {
         @JvmStatic
         fun newInstance() = ProgressFragment().apply { }

@@ -32,4 +32,10 @@
         <item name="android:stateListAnimator">@null</item> <!-- Disables the ripple effect -->
     </style>
 
+    <style name="customImageViewRounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+
 </resources>

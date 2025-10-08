@@ -126,6 +126,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks{
 
     companion object {
         var screenName = ""
+        const val DEBUG_TAG: String = "YOUTUBE_DL_DEBUG_TAG"
 
         private var instance: MyApplication? = null
 

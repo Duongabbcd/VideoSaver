@@ -56,6 +56,10 @@ class SavedFragment : BaseFragment<FragmentSavedBinding>(FragmentSavedBinding::i
         }
     }
 
+    override fun shareWebLink(){}
+
+    override fun bookmarkCurrentUrl(){}
+
     override fun onResume() {
         super.onResume()
         val ctx =context ?: return

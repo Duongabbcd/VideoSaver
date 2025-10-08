@@ -38,13 +38,13 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
         bookmarkAdapter = BookmarkAdapter()
         mainActivityRef = requireActivity() as MainActivity
 
-        tabsBtn.text = MainActivity.tabsList.size.toString()
+//        tabsBtn.text = "0"
 
-        mainActivityRef.binding.topSearchBar.setText("")
-        binding.searchView.setText("")
-        mainActivityRef.binding.webIcon.setImageResource(R.drawable.ic_search)
-
-        mainActivityRef.binding.refreshBtn.visibility = View.GONE
+//        mainActivityRef.binding.topSearchBar.setText("")
+//        binding.searchView.setText("")
+//        mainActivityRef.binding.webIcon.setImageResource(R.drawable.ic_search)
+//
+//        mainActivityRef.binding.refreshBtn.visibility = View.GONE
 
         binding.searchView.setOnEditorActionListener { v, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH ||
@@ -116,21 +116,21 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
 
 
         mainActivityRef.binding.apply {
-            webIcon.gone()
-            topSearchBar.gone()
-            appName.visible()
-            webIcon.setOnClickListener {
-                if (checkForInternet(requireContext())) {
-                    mainActivityRef.hideKeyBoard(mainActivityRef.binding.topSearchBar)
-                    changeTab(
-                        mainActivityRef.binding.topSearchBar.text.toString(),
-                        BrowseFragment(mainActivityRef.binding.topSearchBar.text.toString())
-                    )
-                } else {
-                    Snackbar.make(binding.root, "Internet Not Connected\uD83D\uDE03", 3000).show()
-                }
-
-            }
+//            webIcon.gone()
+//            topSearchBar.gone()
+//            appName.visible()
+//            webIcon.setOnClickListener {
+//                if (checkForInternet(requireContext())) {
+//                    mainActivityRef.hideKeyBoard(mainActivityRef.binding.topSearchBar)
+//                    changeTab(
+//                        mainActivityRef.binding.topSearchBar.text.toString(),
+//                        BrowseFragment(mainActivityRef.binding.topSearchBar.text.toString())
+//                    )
+//                } else {
+//                    Snackbar.make(binding.root, "Internet Not Connected\uD83D\uDE03", 3000).show()
+//                }
+//
+//            }
 
         }
 
@@ -157,6 +157,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
         }
     }
 
+    override fun shareWebLink(){}
+
+    override fun bookmarkCurrentUrl(){}
+
     companion object {
         @JvmStatic
         fun newInstance() = HomeFragment().apply { }
@@ -167,7 +171,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
             return
             MainActivity.tabsList.add(Tab(name = url, fragment = fragment))
             myPager.adapter?.notifyDataSetChanged()
-            tabsBtn.text = MainActivity.tabsList.size.toString()
+//            tabsBtn.text = "0"
 
             if (!isBackground) myPager.currentItem = MainActivity.tabsList.size - 1
         }

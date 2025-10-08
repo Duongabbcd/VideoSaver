@@ -34,6 +34,11 @@ abstract class BaseFragment<T : ViewBinding>(private val inflate: Inflate<T>) : 
         }
     }
 
+    abstract fun shareWebLink()
+
+    abstract fun bookmarkCurrentUrl()
+
+
 
     protected inline fun withSafeContext(action: (Context) -> Unit) {
         if (!isAdded || context == null) return

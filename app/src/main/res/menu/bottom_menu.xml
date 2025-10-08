@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/navigation_home"
+        android:id="@+id/tab_browser"
         android:icon="@drawable/icon_home"
-        android:title="@string/title_home" />
+        android:title="@string/title_home"
+        app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/navigation_request"
+        android:id="@+id/tab_progress"
         android:icon="@drawable/icon_progress"
-        android:title="@string/title_progress" />
+        android:title="@string/title_progress"
+        app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/navigation_settings"
+        android:id="@+id/tab_video"
         android:icon="@drawable/icon_video"
-        android:title="@string/title_videos" />
+        android:title="@string/title_videos"
+        app:showAsAction="ifRoom" />
 
 </menu>

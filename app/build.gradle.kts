@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("dagger.hilt.android.plugin")
     id("com.google.firebase.crashlytics")
+    id("kotlin-kapt")
 }
 
 // Chaquopy must be applied *outside* the plugins {} block in Kotlin DSL
@@ -40,6 +41,7 @@ android {
 
     buildFeatures{
         viewBinding = true
+        dataBinding = true
     }
 
 
@@ -91,13 +93,22 @@ dependencies {
 
 
     implementation("androidx.media3:media3-exoplayer:1.7.1")
-    implementation("androidx.media3:media3-ui:1.7.1")
-    implementation("androidx.media3:media3-datasource:1.7.1")
-    implementation("androidx.media3:media3-datasource-okhttp:1.7.1")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("androidx.media3:media3-exoplayer-dash:1.7.1")
+    implementation("androidx.media3:media3-exoplayer-dash:1.8.0")
     // HLS support
-    implementation("androidx.media3:media3-exoplayer-hls:1.3.1")
+    implementation("androidx.media3:media3-exoplayer-hls:1.8.0")
+    implementation("androidx.media3:media3-exoplayer-rtsp:1.8.0")
+
+    implementation("androidx.media3:media3-ui:1.8.0")
+    implementation("androidx.media3:media3-session:1.8.0")
+    implementation("androidx.media3:media3-extractor:1.8.0")
+    implementation("androidx.media3:media3-database:1.8.0")
+    implementation("androidx.media3:media3-decoder:1.8.0")
+    implementation("androidx.media3:media3-datasource:1.8.0")
+    implementation("androidx.media3:media3-common:1.8.0")
+
+    implementation("androidx.media3:media3-datasource-okhttp:1.8.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
 
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
 
@@ -109,4 +120,25 @@ dependencies {
     implementation("com.github.maxrave-dev:kotlin-youtubeExtractor:0.0.7")
 
     implementation("com.github.microshow:RxFFmpeg:4.9.0-lite")
+
+    implementation("io.github.junkfood02.youtubedl-android:library:0.17.4")
+    implementation("io.github.junkfood02.youtubedl-android:ffmpeg:0.17.4")
+    implementation ("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    //room
+    implementation("androidx.room:room-runtime:2.8.1")
+    ksp("androidx.room:room-compiler:2.8.1")
+    implementation("androidx.room:room-ktx:2.3.0")
+
+    // optional - RxJava2 support
+    implementation("androidx.work:work-rxjava3:2.10.5")
+    // optional - RxJava3 support for Room
+    implementation("androidx.room:room-rxjava3:2.8.1")
+    implementation ("com.squareup.retrofit2:adapter-rxjava3:2.11.0")
+    implementation ("io.reactivex.rxjava3:rxandroid:3.0.2")
+    // Because RxAndroid releases are few and far between, it is recommended you also
+    // explicitly depend on RxJava's latest version for bug fixes and new features.
+    // (see https://github.com/ReactiveX/RxJava/releases for latest 3.x.x version)
+    implementation("io.reactivex.rxjava3:rxjava:3.1.10")
+
+    implementation("androidx.webkit:webkit:1.12.1")
 }

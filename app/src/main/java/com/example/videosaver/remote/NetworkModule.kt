@@ -23,6 +23,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("RemoteClient")
     fun provideOkHttpClient(@Named("APIFY_TOKEN") token: String): OkHttpClient {
         val interceptor = Interceptor { chain ->
             val original: Request = chain.request()
