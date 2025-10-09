@@ -2,6 +2,9 @@ package com.example.videosaver.utils.advance.fragment
 
 import androidx.fragment.app.Fragment
 import com.example.videosaver.advance.ui.browser.BrowserFragment
+import com.example.videosaver.advance.ui.browser.detectedVideos.DetectedVideosTabFragment
+import com.example.videosaver.advance.ui.browser.hometab.BrowserHomeFragment
+import com.example.videosaver.advance.ui.browser.webtab.WebTabFragment
 import javax.inject.Inject
 
 interface FragmentFactory {
@@ -29,9 +32,9 @@ class FragmentFactoryImpl @Inject constructor() : FragmentFactory {
 
     override fun createHistoryFragment() = BrowserFragment.newInstance()
 
-    override fun createBrowserHomeFragment() = BrowserFragment.newInstance()
+    override fun createBrowserHomeFragment() = BrowserHomeFragment.newInstance()
 
-    override fun createWebTabFragment() = BrowserFragment.newInstance()
+    override fun createWebTabFragment() = WebTabFragment.newInstance()
 
-    override fun createDetectedVideosTabFragment() = BrowserFragment.newInstance()
+    override fun createDetectedVideosTabFragment() = DetectedVideosTabFragment.newInstance()
 }

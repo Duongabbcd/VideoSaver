@@ -232,7 +232,7 @@
                     android:id="@+id/progressBar"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/_60sdp"
+                    android:layout_height="@dimen/_3sdp"
                     android:background="@android:color/transparent"
                     android:progress="@{viewModel.progress}"
                     android:progressDrawable="@drawable/progress_load_data"

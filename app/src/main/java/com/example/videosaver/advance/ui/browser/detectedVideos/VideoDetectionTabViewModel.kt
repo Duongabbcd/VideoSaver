@@ -19,6 +19,7 @@ import java.net.URL
 import java.util.concurrent.Executors
 import javax.inject.Inject
 import androidx.core.net.toUri
+import androidx.lifecycle.MutableLiveData
 import com.example.videosaver.advance.data.local.model.VideoInfoWrapper
 import com.example.videosaver.advance.data.local.room.entity.VideoInfo
 import com.example.videosaver.advance.data.repository.VideoRepository
@@ -69,7 +70,7 @@ open class VideoDetectionTabViewModel @Inject constructor(
     val executorReload = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     var webTabModel: WebTabViewModel? = null
     lateinit var settingsModel: SettingsViewModel
-    val detectedVideosList = ObservableField(setOf<VideoInfo>())
+    val detectedVideosList = MutableLiveData<List<VideoInfo>>(emptyList())
 
     val filterRegex =
         Regex("^(.*\\.(apk|html|xml|ico|css|js|png|gif|json|jpg|jpeg|svg|woff|woff2|m3u8|mpd|ts|php|ttf|otf|eot|cur|webp|bmp|tif|tiff|psd|ai|eps|pdf|doc|docx|xls|xlsx|ppt|pptx|csv|md|rtf|vtt|srt|swf|jar|log|txt))?$")
@@ -124,7 +125,7 @@ open class VideoDetectionTabViewModel @Inject constructor(
     override fun onStartPage(url: String, userAgentString: String) {
         downloadButtonState.set(DownloadButtonStateCanNotDownload())
 
-        detectedVideosList.set(mutableSetOf())
+        detectedVideosList.postValue(emptyList())
         cancelAllCheckJobs()
 
         val req = getRequestWithHeadersForUrl(
@@ -161,7 +162,7 @@ open class VideoDetectionTabViewModel @Inject constructor(
             }
         }
 
-        if (detectedVideosList.get()?.isNotEmpty() == true) {
+        if (detectedVideosList.value?.isNotEmpty() == true) {
             showDetectedVideosEvent.call()
         }
     }
@@ -255,7 +256,7 @@ open class VideoDetectionTabViewModel @Inject constructor(
             return
         }
 
-        val detectedVideos = detectedVideosList.get() ?: emptySet()
+        val detectedVideos = detectedVideosList.value.orEmpty()
 
         if (detectedVideos.any { isVideoInfoDuplicate(it, newInfo) }) {
             AppLogger.d("SKIP DUPLICATED VIDEO INFO: $newInfo")
@@ -263,7 +264,7 @@ open class VideoDetectionTabViewModel @Inject constructor(
         }
 
         AppLogger.d("PUSHING $newInfo to list: \n  $detectedVideos")
-        detectedVideosList.set(detectedVideos + newInfo)
+        detectedVideosList.value = detectedVideos + newInfo
 
         viewModelScope.launch(Dispatchers.Main) {
             videoPushedEvent.call()
@@ -352,7 +353,7 @@ open class VideoDetectionTabViewModel @Inject constructor(
             }
 
             is DownloadButtonStateCanNotDownload -> {
-                val detectedSize = detectedVideosList.get()?.size
+                val detectedSize = detectedVideosList.value?.size
                 if (detectedSize == null || detectedSize == 0) {
                     val impEl = regularLoadingList.get()?.find { it.contains(".mp4") }
                     if (m3u8LoadingList.get()?.isEmpty() != true || (m3u8LoadingList.get()
@@ -365,14 +366,14 @@ open class VideoDetectionTabViewModel @Inject constructor(
                 } else {
                     downloadButtonState.set(
                         DownloadButtonStateCanDownload(
-                            detectedVideosList.get()?.first()
+                            detectedVideosList.value?.first()
                         )
                     )
                 }
             }
 
             is DownloadButtonStateLoading -> {
-                val list = detectedVideosList.get() ?: emptySet()
+                val list = detectedVideosList.value ?: emptySet()
                 if (list.isEmpty()) {
                     downloadButtonState.set(DownloadButtonStateLoading())
                 } else {

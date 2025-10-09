@@ -5,13 +5,12 @@ import android.content.SharedPreferences
 import android.os.Build
 import com.example.videosaver.advance.data.local.model.Proxy
 import com.google.gson.Gson
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SharedPrefHelper @Inject constructor(
-    @ApplicationContext private val context: Context,
+    private val context: Context,
     private val appUtil: AppUtil
 ) {
     companion object {

@@ -2,8 +2,6 @@ package com.example.videosaver.remote
 
 import dagger.Module
 import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -15,8 +13,7 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
-@InstallIn(SingletonComponent::class)
-object NetworkModule {
+object ApiNetworkModule {
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }

@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-parcelize")
-    id("dagger.hilt.android.plugin")
+//    id("dagger.hilt.android.plugin")
     id("com.google.firebase.crashlytics")
     id("kotlin-kapt")
     // Removed: id("com.google.devtools.ksp") because we're not using ksp
@@ -40,11 +40,14 @@ android {
         dataBinding = true
     }
 }
-
+kapt {
+    correctErrorTypes = true
+}
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.espresso.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -59,8 +62,8 @@ dependencies {
     implementation("com.auth0:java-jwt:4.4.0")
 
     // Dagger Hilt with kapt only
-    implementation("com.google.dagger:hilt-android:2.55")
-    kapt("com.google.dagger:hilt-compiler:2.55")
+//    implementation("com.google.dagger:hilt-android:2.55")
+//    kapt("com.google.dagger:hilt-compiler:2.55")
 
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-analytics-ktx")
@@ -109,6 +112,7 @@ dependencies {
 
     implementation("io.github.junkfood02.youtubedl-android:library:0.17.4")
     implementation("io.github.junkfood02.youtubedl-android:ffmpeg:0.17.4")
+
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
     // Room
@@ -126,11 +130,15 @@ dependencies {
 
     implementation("androidx.webkit:webkit:1.12.1")
 
-    implementation(libs.dagger.runtime)
-    implementation(libs.dagger.android)
-    implementation(libs.dagger.android.support)
-    kapt(libs.dagger.compiler)
-    kapt(libs.dagger.android.processor)
+// Dagger dependencies
+    implementation ("com.google.dagger:dagger:2.56.2")
+    kapt ("com.google.dagger:dagger-compiler:2.56.2")
+    implementation ("com.google.dagger:dagger-android:2.56.2")
+    implementation ("com.google.dagger:dagger-android-support:2.56.2") // if you use Android support
+    kapt ("com.google.dagger:dagger-android-processor:2.56.2")
+
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.20")
+    //time ago message
+    implementation ("com.github.marlonlom:timeago:4.1.0")
 }

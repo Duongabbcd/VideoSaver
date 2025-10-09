@@ -13,14 +13,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.videosaver.remote.ApifyService
 import com.example.videosaver.remote.model.scraper.VideoItem
+import com.example.videosaver.remote.model.scraper.VideoItem.Companion.VIDEO_DEFAULT
 import com.example.videosaver.remote.model.scraper.VideoSolution
-import dagger.hilt.android.lifecycle.HiltViewModel
+ 
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
+ 
 class VideoViewModel @Inject constructor(
-    private val apifyService: ApifyService
+//    private val apifyService: ApifyService
 ) : ViewModel() {
     private val _videoItem = MutableLiveData<VideoItem>()
     val videoItem: LiveData<VideoItem>  = _videoItem
@@ -116,7 +117,7 @@ class VideoViewModel @Inject constructor(
         var allMediaSolutions =mutableListOf<VideoSolution>()
         viewModelScope.launch {
             try {
-                val response = apifyService.extractVideo(mapOf("url" to url))
+                val response = listOf(VIDEO_DEFAULT)
                 val videoItem = response
                 _videoItem.value = videoItem.first()
                 allVideoSolutions.addAll(videoItem.first().availableFormats.filter {

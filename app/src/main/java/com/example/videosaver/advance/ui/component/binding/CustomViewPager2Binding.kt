@@ -1,4 +1,4 @@
-package com.example.videosaver.advance.ui.component
+package com.example.videosaver.advance.ui.component.binding
 
 import androidx.annotation.OptIn
 import androidx.databinding.BindingAdapter

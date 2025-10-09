@@ -12,7 +12,8 @@ import javax.inject.Singleton
 
 @Singleton
 class AnalyticsLogger @Inject constructor(
-    private val firebaseAnalytics: FirebaseAnalytics) {
+    private val firebaseAnalytics: FirebaseAnalytics
+) {
     var userProperties = UserProperties(
         currentMode = "",
         currentScreen = "",

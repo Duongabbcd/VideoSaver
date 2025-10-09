@@ -8,10 +8,10 @@ import com.example.videosaver.advance.ui.setting.SettingsViewModel
 import com.example.videosaver.advance.ui.webtab.WebTab
 import com.example.videosaver.base.BaseViewModel
 import com.example.videosaver.utils.SingleLiveEvent
-import dagger.hilt.android.lifecycle.HiltViewModel
+ 
 import javax.inject.Inject
 
-@HiltViewModel
+ 
 class BrowserViewModel @Inject constructor() : BaseViewModel() {
     companion object {
         const val SEARCH_URL = "https://duckduckgo.com/?t=ffab&q=%s"

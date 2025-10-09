@@ -26,7 +26,6 @@ import com.example.videosaver.screen.home.MainViewModel
 import com.example.videosaver.utils.advance.util.AppUtil
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 interface BrowserHomeListener : BrowserListener {
 
     override fun onBrowserReloadClicked() {
@@ -61,9 +60,9 @@ class BrowserHomeFragment : BaseWebTabFragment() {
 
     private lateinit var openPageIProvider: TabManagerProvider
 
-    private val homeViewModel: BrowserHomeViewModel by viewModels()
-    private val mainViewModel: MainViewModel by viewModels()
+    private lateinit var homeViewModel: BrowserHomeViewModel
 
+    private lateinit var mainViewModel: MainViewModel
 
     private lateinit var topPageAdapter: TopPageAdapter
 
@@ -73,6 +72,8 @@ class BrowserHomeFragment : BaseWebTabFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        mainViewModel = mainActivity.mainViewModel
+        homeViewModel = ViewModelProvider(this, viewModelFactory)[BrowserHomeViewModel::class.java]
         openPageIProvider = mainActivity.mainViewModel.browserServicesProvider!!
 
         topPageAdapter = TopPageAdapter(requireContext(), emptyList(), itemListener)
@@ -123,15 +124,16 @@ class BrowserHomeFragment : BaseWebTabFragment() {
             openNewTab(openingText)
             mainViewModel.openedText.set(null)
         }
+
     }
 
     // Bug fix for not updating home page grid after adding new bookmark
     override fun onResume() {
         super.onResume()
-        mainViewModel.bookmarksList.observe(viewLifecycleOwner) { list ->
-            topPageAdapter.setData(list)
-        }
+        val bookmarksList = mainViewModel.bookmarksList.get()?.toMutableList()
+        mainViewModel.bookmarksList.set(bookmarksList)
     }
+
 
     private val suggestionListener = object : SuggestionListener {
         override fun onItemClicked(suggestion: Suggestion) {
@@ -140,6 +142,7 @@ class BrowserHomeFragment : BaseWebTabFragment() {
     }
 
     private fun openNewTab(input: String) {
+        println("openNewTab: $input")
         if (input.isNotEmpty()) {
             openPageIProvider.getOpenTabEvent().value = WebTabFactory.createWebTabFromInput(input)
         }
@@ -148,7 +151,11 @@ class BrowserHomeFragment : BaseWebTabFragment() {
     private val onInputHomeSearchChangeListener = object : TextWatcher {
         override fun afterTextChanged(s: Editable) {
             val input = s.toString()
-            homeViewModel.onSearchTextChanged(input)
+            homeViewModel.searchTextInput.set(input)
+            if (!(input.startsWith("http://") || input.startsWith("https://"))) {
+                homeViewModel.showSuggestions()
+            }
+            homeViewModel.homePublishSubject.onNext(input)
         }
 
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -164,7 +171,8 @@ class BrowserHomeFragment : BaseWebTabFragment() {
         }
     }
 
-    private val menuListener = object : BrowserHomeListener {
+    private val menuListener = object :
+        BrowserHomeListener {
         override fun onBrowserMenuClicked() {
             showPopupMenu()
         }

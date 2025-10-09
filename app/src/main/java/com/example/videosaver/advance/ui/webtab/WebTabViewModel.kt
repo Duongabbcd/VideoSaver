@@ -15,7 +15,7 @@ import com.example.videosaver.advance.data.repository.HistoryRepository
 import com.example.videosaver.base.BaseViewModel
 import com.example.videosaver.utils.SingleLiveEvent
 import com.example.videosaver.utils.advance.scheduler.BaseSchedulers
-import dagger.hilt.android.lifecycle.HiltViewModel
+ 
 import io.reactivex.rxjava3.core.BackpressureStrategy
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.subjects.PublishSubject
@@ -25,21 +25,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlin.text.set
 
-@HiltViewModel
+
 class WebTabViewModel @Inject constructor(
     private val historyRepository: HistoryRepository,
-    private val baseSchedulers: BaseSchedulers,
+    private val baseSchedulers: BaseSchedulers
 ) : BaseViewModel() {
     val isTabInputFocused = ObservableBoolean(false)
     val changeTabFocusEvent = SingleLiveEvent<Boolean>()
     val thisTabIndex = ObservableInt(-1)
     val isDownloadDialogShown = ObservableBoolean(false)
     lateinit var tabPublishSubject: PublishSubject<String>
-
-    private val _listTabSuggestions = MutableLiveData<List<HistoryItem>>()
-    val listTabSuggestions: LiveData<List<HistoryItem>> = _listTabSuggestions
-
+    var listTabSuggestions: ObservableField<MutableList<HistoryItem>> = ObservableField(
+        mutableListOf()
+    )
     val isShowProgress = ObservableBoolean(true)
     val progress = ObservableInt(0)
     val progressIcon = ObservableInt(R.drawable.ic_refresh_24dp)
@@ -106,9 +106,9 @@ class WebTabViewModel @Inject constructor(
                 withContext(this.coroutineContext) {
                     val list = getListTabSuggestions().blockingFirst().reversed()
                     if (list.size > 50) {
-                        _listTabSuggestions.value = list.subList(0, 50).toMutableList()
+                        listTabSuggestions.set(list.subList(0, 50).toMutableList())
                     } else {
-                        _listTabSuggestions.value = list.toMutableList()
+                        listTabSuggestions.set(list.toMutableList())
                     }
                 }
             } catch (e: Throwable) {

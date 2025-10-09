@@ -16,18 +16,14 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.videosaver.base.BaseFragment
 import com.example.videosaver.databinding.FragmentHomeBinding
 import com.google.android.material.snackbar.Snackbar
-import com.example.videosaver.R
 import com.example.videosaver.remote.model.Tab
 import com.example.videosaver.screen.bookmark.BookmarkActivity
 import com.example.videosaver.screen.bookmark.adapter.BookmarkAdapter
 import com.example.videosaver.screen.browse.BrowseActivity
 import com.example.videosaver.screen.home.MainActivity
 import com.example.videosaver.screen.home.MainActivity.Companion.myPager
-import com.example.videosaver.screen.home.MainActivity.Companion.tabsBtn
-import com.example.videosaver.screen.home.subscreen.advance.BrowseFragment
 import com.example.videosaver.utils.Common.gone
 import com.example.videosaver.utils.Common.visible
-import com.example.videosaver.utils.Utils.hideKeyBoard
 
 class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::inflate), DisplayURL {
     private lateinit var mainActivityRef : MainActivity
@@ -113,26 +109,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(FragmentHomeBinding::infl
             }
 
         })
-
-
-        mainActivityRef.binding.apply {
-//            webIcon.gone()
-//            topSearchBar.gone()
-//            appName.visible()
-//            webIcon.setOnClickListener {
-//                if (checkForInternet(requireContext())) {
-//                    mainActivityRef.hideKeyBoard(mainActivityRef.binding.topSearchBar)
-//                    changeTab(
-//                        mainActivityRef.binding.topSearchBar.text.toString(),
-//                        BrowseFragment(mainActivityRef.binding.topSearchBar.text.toString())
-//                    )
-//                } else {
-//                    Snackbar.make(binding.root, "Internet Not Connected\uD83D\uDE03", 3000).show()
-//                }
-//
-//            }
-
-        }
 
 
         binding.recyclerView.setHasFixedSize(true)

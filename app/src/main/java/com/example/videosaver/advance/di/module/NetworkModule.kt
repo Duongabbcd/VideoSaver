@@ -8,8 +8,6 @@ import com.example.videosaver.utils.advance.proxy_utils.CustomProxyController
 import com.example.videosaver.utils.advance.util.Memory
 import dagger.Module
 import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -22,7 +20,6 @@ import javax.inject.Singleton
 import kotlin.jvm.java
 
 @Module
-@InstallIn(SingletonComponent::class)
 class NetworkModule {
 
     companion object {
@@ -44,10 +41,17 @@ class NetworkModule {
             )
             .build()
 
+//    @Provides
+//    @Singleton
+//    fun provideOkHttpClient(application: Application): OkHttpClient =
+//        buildOkHttpClient(application)
+
+    // ✅ Named version if you still need the "AdvanceClient"
     @Provides
     @Singleton
     @Named("AdvanceClient")
-    fun provideOkHttpClient(application: Application): OkHttpClient = buildOkHttpClient(application)
+    fun provideAdvanceOkHttpClient(application: Application): OkHttpClient =
+        buildOkHttpClient(application)
 
     @Provides
     @Singleton

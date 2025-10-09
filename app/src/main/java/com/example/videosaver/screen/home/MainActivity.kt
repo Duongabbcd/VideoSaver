@@ -1,143 +1,135 @@
 package com.example.videosaver.screen.home
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
-import android.view.Gravity
+import android.view.Window
 import android.webkit.URLUtil
-import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
+import androidx.databinding.DataBindingUtil
 import androidx.databinding.Observable
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.Lifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager2.widget.ViewPager2
 import com.example.videosaver.R
 import com.example.videosaver.advance.ui.proxies.ProxiesViewModel
 import com.example.videosaver.advance.ui.setting.SettingsViewModel
-import com.example.videosaver.base.BaseActivity
+import com.example.videosaver.base.BaseActivity2
 import com.example.videosaver.databinding.ActivityMainBinding
-import com.example.videosaver.databinding.BookmarkDialogBinding
 import com.example.videosaver.remote.model.Bookmark
 import com.example.videosaver.remote.model.Tab
-import com.example.videosaver.screen.home.subscreen.advance.BrowseFragment
-import com.example.videosaver.screen.home.subscreen.HomeFragment
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textview.MaterialTextView
 import com.google.gson.GsonBuilder
-import com.google.gson.reflect.TypeToken
-import com.example.videosaver.databinding.MoreFeaturesBinding
-import com.example.videosaver.databinding.TabsViewBinding
-import com.example.videosaver.screen.browse.BrowseActivity
 import com.example.videosaver.screen.download.DownloadActivity
 import com.example.videosaver.screen.home.adapter.MainAdapter
-import com.example.videosaver.screen.home.adapter.TabAdapter
 import com.example.videosaver.screen.home.subscreen.DisplayURL
-import com.example.videosaver.screen.home.subscreen.process.ProgressFragment
-import com.example.videosaver.screen.home.subscreen.saved.SavedFragment
 import com.example.videosaver.utils.advance.fragment.FragmentFactory
+import com.example.videosaver.utils.advance.scheduler.BaseSchedulers
 import com.example.videosaver.utils.advance.util.SharedPrefHelper
-import dagger.hilt.android.AndroidEntryPoint
-import java.io.ByteArrayOutputStream
+import com.example.videosaver.utils.advance.util.downloaders.youtubedl_downloader.YoutubeDlDownloaderWorker
+import com.google.gson.reflect.TypeToken
 import javax.inject.Inject
-import kotlin.text.get
-import kotlin.text.set
 
-@AndroidEntryPoint
-class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::inflate){
-    private lateinit var mainAdapter: MainAdapter
-     val mainViewModel: MainViewModel by viewModels()
-     val proxiesViewModel: ProxiesViewModel by viewModels()
-     val settingsViewModel: SettingsViewModel by viewModels()
+
+class MainActivity : BaseActivity2(){
     @Inject
     lateinit var fragmentFactory: FragmentFactory
 
     @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+
+    @Inject
+    lateinit var baseSchedulers: BaseSchedulers
+
+    @Inject
     lateinit var sharedPrefHelper: SharedPrefHelper
 
+    lateinit var mainViewModel: MainViewModel
+
+    lateinit var proxiesViewModel: ProxiesViewModel
+
+    lateinit var settingsViewModel: SettingsViewModel
+
+    private lateinit var dataBinding: ActivityMainBinding
+
+    private lateinit var mainAdapter: MainAdapter
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
         super.onCreate(savedInstanceState)
-//        openFragment(HomeFragment.Companion.newInstance())
-        binding.lifecycleOwner = this  // so LiveData updates propagate to the UI
+
+        dataBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+
+
+        mainViewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
+        proxiesViewModel = ViewModelProvider(this, viewModelFactory)[ProxiesViewModel::class.java]
+        settingsViewModel = ViewModelProvider(this, viewModelFactory)[SettingsViewModel::class.java]
+
         mainAdapter = MainAdapter(supportFragmentManager, lifecycle, fragmentFactory)
-        binding.apply {
-            selectedTab = 0
 
-            getAllBookmarks()
-            
-//            tabsList.add(Tab("Home", HomeFragment()))
-            binding.viewPager.adapter = mainAdapter
-            binding.viewPager.isUserInputEnabled = false
-            binding.viewPager.registerOnPageChangeCallback(onPageChangeListener)
-            myPager = binding.viewPager
-            mainViewModel.offScreenPageLimit.observe(this@MainActivity) { limit ->
-                Log.d("MainActivity", "Setting offscreenPageLimit to $limit")
-                val validLimit = if (limit == null || limit == 0) ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT else limit
-                binding.viewPager.offscreenPageLimit = validLimit
-            }
-
-
-            binding.bottomController.setOnItemSelectedListener { menuItem ->
-                val isBrowser = mainViewModel.currentItem.get() == 0
-                var goingToBrowser = false
-                when (menuItem.itemId) {
-                    R.id.tab_browser -> {
-                        mainViewModel.currentItem.set(0)
-                        goingToBrowser = true
-                    }
-
-                    R.id.tab_progress -> mainViewModel.currentItem.set(1)
-                    R.id.tab_video -> mainViewModel.currentItem.set(2)
-                    else -> mainViewModel.currentItem.set(3)
+        dataBinding.viewPager.isUserInputEnabled = false
+        dataBinding.viewPager.adapter = mainAdapter
+        dataBinding.viewPager.registerOnPageChangeCallback(onPageChangeListener)
+        dataBinding.bottomController.setOnItemSelectedListener { menuItem ->
+            val isBrowser = mainViewModel.currentItem.get() == 0
+            var goingToBrowser = false
+            when (menuItem.itemId) {
+                R.id.tab_browser -> {
+                    mainViewModel.currentItem.set(0)
+                    goingToBrowser = true
                 }
 
-                if (isBrowser && goingToBrowser && mainViewModel.isBrowserCurrent.get()) {
-                    mainViewModel.openNavDrawerEvent.call()
-                }
-                return@setOnItemSelectedListener true
+                R.id.tab_progress -> mainViewModel.currentItem.set(1)
+                R.id.tab_video -> mainViewModel.currentItem.set(2)
+                else -> mainViewModel.currentItem.set(3)
             }
-            mainViewModel.start()
+
+            if (isBrowser && goingToBrowser && mainViewModel.isBrowserCurrent.get()) {
+                mainViewModel.openNavDrawerEvent.call()
+            }
+            return@setOnItemSelectedListener true
         }
+        dataBinding.viewModel = mainViewModel
+
+        grantPermissions()
+        proxiesViewModel.start()
+        settingsViewModel.start()
+        mainViewModel.start()
+
+        if (intent.action == Intent.ACTION_VIEW) {
+            val videoUrl = intent.dataString
+            if (videoUrl != null) {
+                mainViewModel.openedUrl.set(videoUrl)
+            }
+        }
+
+        if (intent.action == Intent.ACTION_SEND) {
+            val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+            if (sharedText != null) {
+                mainViewModel.openedText.set(sharedText)
+            }
+        }
+
+        handleScreenOrientationSettingChange()
+        handleScreenOrientationSettingsInit()
+
+        onNewIntent(intent)
     }
-
-//    private fun displayScreen() {
-//       when(selectedTab) {
-//            0-> {
-//                openFragment(HomeFragment.Companion.newInstance())
-//            }
-//          1-> {
-//                openFragment(ProgressFragment.Companion.newInstance())
-//            }
-//          2-> {
-//                openFragment(SavedFragment.Companion.newInstance())
-//            }
-//
-//           else -> {
-//               openFragment(HomeFragment.Companion.newInstance())
-//           }
-//       }
-//    }
-
 
     override fun onResume() {
         super.onResume()
-        Handler(Looper.getMainLooper()).postDelayed({
-            checkClipboardForUrl()
-        }, 300)  // 300ms delay often helps clipboard availability
+//        Handler(Looper.getMainLooper()).postDelayed({
+//            checkClipboardForUrl()
+//        }, 300)
 
     }
 
@@ -169,47 +161,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
     }
 
-    private val onPageChangeListener = object : ViewPager2.OnPageChangeCallback() {
-        override fun onPageScrollStateChanged(p0: Int) {
-        }
-
-        override fun onPageScrolled(p0: Int, p1: Float, p2: Int) {
-        }
-
-        override fun onPageSelected(postion: Int) {
-            if (postion == 0) {
-                // Если без этого, дровер отркрываетс когда не надо
-                Handler(Looper.getMainLooper()).postDelayed({
-                    mainViewModel.isBrowserCurrent.set(true)
-                }, 1000)
-            } else {
-                mainViewModel.isBrowserCurrent.set(false)
-            }
-
-            val childrenCount = binding.frameLayout.childCount
-            if (childrenCount > 0) {
-                supportFragmentManager.popBackStack()
-            }
-            if (postion > 0) {
-                //previous: true
-                binding.viewPager.isUserInputEnabled = false
-            } else {
-                binding.viewPager.isUserInputEnabled = false
-            }
-
-            mainViewModel.currentItem.set(postion)
-        }
-    }
-
 
     @SuppressLint("NotifyDataSetChanged")
     override fun onBackPressed() {
         moveTaskToBack(true)
-    }
-
-    override fun onDestroy() {
-        mainViewModel.stop()
-        super.onDestroy()
     }
 
     fun isBookmarked(url: String): Int {
@@ -246,31 +201,120 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         }
     }
 
-//    private fun handleScreenOrientationSettingsInit() {
-//
-//        requestedOrientation = if (settingsViewModel.isLockPortrait.get()) {
-//            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-//        } else {
-//            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-//        }
-//    }
-//
-//    private fun handleScreenOrientationSettingChange() {
-//
-//        settingsViewModel.isLockPortrait.addOnPropertyChangedCallback(object :
-//            Observable.OnPropertyChangedCallback() {
-//            override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
-//                val isLock = settingsViewModel.isLockPortrait.get()
-//
-//                requestedOrientation = if (isLock) {
-//                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-//                } else {
-//                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-//                }
-//            }
-//        })
-//    }
+    @SuppressLint("MissingSuperCall")
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        if (intent?.getBooleanExtra(
+                YoutubeDlDownloaderWorker.IS_FINISHED_DOWNLOAD_ACTION_KEY,
+                false
+            ) == true
+        ) {
+            if (intent.getBooleanExtra(
+                    YoutubeDlDownloaderWorker.IS_FINISHED_DOWNLOAD_ACTION_ERROR_KEY,
+                    false
+                )
+            ) {
+                dataBinding.viewPager.currentItem = 1
+            } else {
+                dataBinding.viewPager.currentItem = 2
+            }
 
+            if (intent.hasExtra(YoutubeDlDownloaderWorker.DOWNLOAD_FILENAME_KEY)) {
+                val downloadFileName =
+                    intent.getStringExtra(YoutubeDlDownloaderWorker.DOWNLOAD_FILENAME_KEY)
+                        .toString()
+
+                Handler(Looper.getMainLooper()).postDelayed({
+                    mainViewModel.openDownloadedVideoEvent.value = downloadFileName
+                }, 1000)
+            }
+        } else {
+            if (intent?.hasExtra(YoutubeDlDownloaderWorker.IS_FINISHED_DOWNLOAD_ACTION_KEY) == true) {
+                dataBinding.viewPager.currentItem = 1
+            } else {
+                dataBinding.viewPager.currentItem = 0
+            }
+        }
+    }
+
+    private fun grantPermissions() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (ContextCompat.checkSelfPermission(
+                    applicationContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ),
+                    0
+                )
+            }
+        }
+    }
+
+    private val onPageChangeListener = object : ViewPager2.OnPageChangeCallback() {
+        override fun onPageScrollStateChanged(p0: Int) {
+        }
+
+        override fun onPageScrolled(p0: Int, p1: Float, p2: Int) {
+        }
+
+        override fun onPageSelected(postion: Int) {
+            if (postion == 0) {
+                // Если без этого, дровер отркрываетс когда не надо
+                Handler(Looper.getMainLooper()).postDelayed({
+                    mainViewModel.isBrowserCurrent.set(true)
+                }, 1000)
+            } else {
+                mainViewModel.isBrowserCurrent.set(false)
+            }
+
+            val childrenCount = dataBinding.frameLayout.childCount
+            if (childrenCount > 0) {
+                supportFragmentManager.popBackStack()
+            }
+            if (postion > 0) {
+                dataBinding.viewPager.isUserInputEnabled = true
+            } else {
+                dataBinding.viewPager.isUserInputEnabled = false
+            }
+
+            mainViewModel.currentItem.set(postion)
+        }
+    }
+
+    override fun onDestroy() {
+        mainViewModel.stop()
+        super.onDestroy()
+    }
+
+    private fun handleScreenOrientationSettingsInit() {
+        // INIT
+        requestedOrientation = if (settingsViewModel.isLockPortrait.get()) {
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+    }
+
+    private fun handleScreenOrientationSettingChange() {
+        // CHANGES HANDLING
+        settingsViewModel.isLockPortrait.addOnPropertyChangedCallback(object :
+            Observable.OnPropertyChangedCallback() {
+            override fun onPropertyChanged(sender: Observable?, propertyId: Int) {
+                val isLock = settingsViewModel.isLockPortrait.get()
+
+                requestedOrientation = if (isLock) {
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                } else {
+                    ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                }
+            }
+        })
+    }
 
 
 

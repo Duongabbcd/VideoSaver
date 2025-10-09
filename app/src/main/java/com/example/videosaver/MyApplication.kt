@@ -2,28 +2,56 @@ package com.example.videosaver
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.util.Log
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.work.Configuration
+import androidx.work.WorkManager
+import com.example.videosaver.advance.di.component.DaggerAppComponent
 import com.example.videosaver.firebase.AnalyticsLogger
 import com.example.videosaver.utils.Common
+import com.example.videosaver.utils.advance.util.AppLogger
+import com.example.videosaver.utils.advance.util.ContextUtils
+import com.example.videosaver.utils.advance.util.FileUtil
+import com.example.videosaver.utils.advance.util.SharedPrefHelper
+import com.example.videosaver.utils.advance.util.downloaders.generic_downloaders.DaggerWorkerFactory
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
-import dagger.hilt.android.HiltAndroidApp
+import com.yausername.ffmpeg.FFmpeg
+import com.yausername.youtubedl_android.YoutubeDL
+import com.yausername.youtubedl_android.YoutubeDLException
+import dagger.android.AndroidInjector
+import dagger.android.DaggerApplication
+import io.reactivex.rxjava3.plugins.RxJavaPlugins
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
-@HiltAndroidApp
-class MyApplication : Application(), Application.ActivityLifecycleCallbacks{
+
+class MyApplication() : DaggerApplication(), Application.ActivityLifecycleCallbacks{
     var currentActivity: Activity? = null
         private set
 
     lateinit var exoPlayer: ExoPlayer
         private set
 
+    private lateinit var androidInjector: AndroidInjector<out DaggerApplication>
     @Inject
     lateinit var analyticsLogger: AnalyticsLogger
+
+    @Inject
+    lateinit var workerFactory: DaggerWorkerFactory
+
+    @Inject
+    lateinit var sharedPrefHelper: SharedPrefHelper
+
+    @Inject
+    lateinit var fileUtil: FileUtil
 
     private var activityReferences = 0
     private var isActivityChangingConfigurations = false
@@ -32,15 +60,86 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks{
 
     private val activityStartTimes = mutableMapOf<String, Long>()
 
+
+
+
     override fun onCreate() {
         super.onCreate()
+        setupForDownloading()
+
         instance = this // ✅ Fix: Set instance here
         FirebaseApp.initializeApp(this)
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(this)
         exoPlayer = ExoPlayer.Builder(this).build()
 
         registerActivityLifecycleCallbacks(this)
+
+
     }
+
+    private fun setupForDownloading() {
+        ContextUtils.initApplicationContext(applicationContext)
+
+        initializeFileUtils()
+
+        val file: File = fileUtil.folderDir
+        val ctx = applicationContext
+
+//        WorkManager.initialize(
+//            ctx,
+//            Configuration.Builder()
+//                .setWorkerFactory(workerFactory).build()
+//        )
+
+        RxJavaPlugins.setErrorHandler { error: Throwable? ->
+            AppLogger.e("RxJavaError unhandled $error")
+        }
+
+        CoroutineScope(Dispatchers.Default).launch {
+            if (!file.exists()) {
+                file.mkdirs()
+            }
+
+            initializeYoutubeDl()
+            updateYoutubeDL()
+        }
+    }
+
+    private fun initializeFileUtils() {
+        val isExternal = sharedPrefHelper.getIsExternalUse()
+        val isAppDir = sharedPrefHelper.getIsAppDirUse()
+
+        FileUtil.IS_EXTERNAL_STORAGE_USE = isExternal
+        FileUtil.IS_APP_DATA_DIR_USE = isAppDir
+        FileUtil.INITIIALIZED = true
+    }
+
+    private fun initializeYoutubeDl() {
+        try {
+            YoutubeDL.getInstance().init(applicationContext)
+            FFmpeg.getInstance().init(applicationContext)
+        } catch (e: YoutubeDLException) {
+            AppLogger.e("failed to initialize youtubedl-android $e")
+        }
+    }
+
+    private fun updateYoutubeDL() {
+        try {
+            val status = YoutubeDL.getInstance()
+                .updateYoutubeDL(applicationContext, YoutubeDL.UpdateChannel.MASTER)
+            AppLogger.d("UPDATE_STATUS MASTER: $status")
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+
+        androidInjector = DaggerAppComponent.builder().application(this).build()
+    }
+
+    override fun applicationInjector(): AndroidInjector<out DaggerApplication> =  androidInjector
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         val lang = Common.getPreLanguage(this)
@@ -126,7 +225,7 @@ class MyApplication : Application(), Application.ActivityLifecycleCallbacks{
 
     companion object {
         var screenName = ""
-        const val DEBUG_TAG: String = "YOUTUBE_DL_DEBUG_TAG"
+        const val DEBUG_TAG: String = "VideoSaver"
 
         private var instance: MyApplication? = null
 

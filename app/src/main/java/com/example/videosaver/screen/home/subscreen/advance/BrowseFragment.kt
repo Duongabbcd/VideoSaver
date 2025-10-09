@@ -75,28 +75,6 @@ class BrowseFragment(private var urlNew: String = "https://www.google.com") : Ba
 //        binding.webView.setDownloadListener { url, _, _, _, _ -> startActivity(Intent(Intent.ACTION_VIEW).setData(
 //            Uri.parse(url))) }
 
-        mainRef.binding.apply {
-//            webIcon.visible()
-//            topSearchBar.visible()
-//            appName.gone()
-//            webIcon.setOnClickListener {
-//                if (checkForInternet(requireContext())) {
-//                    mainRef.hideKeyBoard(mainRef.binding.topSearchBar)
-//                    changeTab(
-//                        mainRef.binding.topSearchBar.text.toString(),
-//                        BrowseFragment(mainRef.binding.topSearchBar.text.toString())
-//                    )
-//                } else {
-//                    Snackbar.make(binding.root, "Internet Not Connected\uD83D\uDE03", 3000).show()
-//                }
-//
-//            }
-//
-//            refreshBtn.visibility = View.VISIBLE
-//            refreshBtn.setOnClickListener {
-//                binding.webView.reload()
-//            }
-        }
 
 //        binding.webView.apply {
 //            settings.javaScriptEnabled = true

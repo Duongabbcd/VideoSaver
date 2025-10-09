@@ -59,7 +59,11 @@ data class VideoItem(
     val thumbnail: String,
     val duration: Double,
     val availableFormats: List<VideoSolution>,
-)
+) {
+    companion object {
+         val VIDEO_DEFAULT = VideoItem("", "", 0.0, listOf(VideoSolution.VIDEO_SOLUTION_DEFAULT))
+    }
+}
 
 data class TiktokVideoItem(
     val title: String,

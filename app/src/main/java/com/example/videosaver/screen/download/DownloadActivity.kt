@@ -13,7 +13,7 @@ import androidx.media3.common.util.UnstableApi
 import com.example.videosaver.base.BaseActivity
 import com.example.videosaver.databinding.ActivityDownloadBinding
 import com.example.videosaver.viewmodel.video.VideoViewModel
-import dagger.hilt.android.AndroidEntryPoint
+ 
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
 
-@AndroidEntryPoint
+ 
 class DownloadActivity : BaseActivity<ActivityDownloadBinding>(ActivityDownloadBinding::inflate) {
     private val downloadedURL by lazy {
         intent.getStringExtra("downloadedURL") ?: ""

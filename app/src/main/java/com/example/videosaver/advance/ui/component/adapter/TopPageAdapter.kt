@@ -28,7 +28,9 @@ class TopPageAdapter(
         }
 
         with(binding) {
-            this?.pageInfo = pageInfos[position]
+            val item = pageInfos[position]
+            println("TopPageAdapter: $item")
+            this?.pageInfo = item
             this?.listener = itemListener
             if (this?.pageInfo?.faviconBitmap() != null) {
                 this.imgIcon.setImageBitmap(pageInfo!!.faviconBitmap())

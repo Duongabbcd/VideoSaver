@@ -9,7 +9,7 @@ import com.example.videosaver.base.BaseViewModel
 import com.example.videosaver.utils.SingleLiveEvent
 import com.example.videosaver.utils.advance.util.FileUtil
 import com.example.videosaver.utils.advance.util.SharedPrefHelper
-import dagger.hilt.android.lifecycle.HiltViewModel
+ 
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -20,7 +20,7 @@ enum class StorageType {
     SD, HIDDEN, HIDDEN_SD
 }
 
-@HiltViewModel
+ 
 class SettingsViewModel @Inject constructor(
     private val sharedPrefHelper: SharedPrefHelper,
 ) :

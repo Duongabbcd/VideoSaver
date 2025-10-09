@@ -13,17 +13,15 @@ import com.example.videosaver.advance.data.local.room.entity.PageInfo
 import com.example.videosaver.base.BaseViewModel
 import com.example.videosaver.utils.SingleLiveEvent
 import com.example.videosaver.utils.advance.util.FaviconUtils
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import javax.inject.Inject
 import kotlin.collections.indexOfFirst
-import kotlin.collections.plus
 import kotlin.collections.toMutableList
 
-@HiltViewModel
+
 class MainViewModel @Inject constructor(
     private val topPagesRepository: TopPagesRepository,
 ) : BaseViewModel() {
@@ -31,28 +29,30 @@ class MainViewModel @Inject constructor(
     var browserServicesProvider: BrowserServicesProvider? = null
 
     val openedUrl = ObservableField<String?>()
+
     val openedText = ObservableField<String?>()
 
     val isBrowserCurrent = ObservableBoolean(false)
+
     val currentItem = ObservableField<Int>()
 
-    private val _offScreenPageLimit = MutableLiveData(3)
-    val offScreenPageLimit: LiveData<Int> = _offScreenPageLimit
+    val offScreenPageLimit = ObservableField(4)
 
-    // Pair<format, url>
+    // pair - format:url
     val selectedFormatTitle = ObservableField<Pair<String, String>?>()
 
     val currentOriginal = ObservableField<String>()
 
     val downloadVideoEvent = SingleLiveEvent<VideoInfo>()
+
     val openDownloadedVideoEvent = SingleLiveEvent<String>()
+
     val openNavDrawerEvent = SingleLiveEvent<Unit?>()
 
-    // Use LiveData instead of ObservableField
-    private val _bookmarksList = MutableLiveData<List<PageInfo>>(emptyList())
-    val bookmarksList: LiveData<List<PageInfo>> = _bookmarksList
+    var bookmarksList: ObservableField<MutableList<PageInfo>> = ObservableField(mutableListOf())
 
     private val executorSingle = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+
     private val executorMoverSingle = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
     override fun start() {
@@ -66,23 +66,18 @@ class MainViewModel @Inject constructor(
 
     fun bookmark(url: String, name: String, favicon: Bitmap?) {
         viewModelScope.launch(executorMoverSingle) {
-            // Read current bookmarks or start fresh
-            val current = _bookmarksList.value?.toMutableList() ?: mutableListOf()
+            var bookmarks = topPagesRepository.getTopPages().toMutableList()
             val faviconBytes = FaviconUtils.bitmapToBytes(favicon)
             val newBookmark = PageInfo(
-                link = url,
-                order = current.size,
-                name = name,
-                favicon = faviconBytes
+                link = url, order = bookmarks.size, name = name, favicon = faviconBytes
             )
-            current.add(newBookmark)
-            // Reassign order so it's consistent
-            current.forEachIndexed { idx, pi ->
-                pi.order = idx
-            }
-            // Persist and update LiveData
-            topPagesRepository.replaceBookmarksWith(current)
-            _bookmarksList.postValue(current)  // or `.value = current` on main thread
+            bookmarks.add(newBookmark)
+            bookmarks = bookmarks.mapIndexed { index, pageInfo ->
+                pageInfo.order = index
+                pageInfo
+            }.toMutableList()
+            bookmarksList.set(bookmarks)
+            topPagesRepository.replaceBookmarksWith(bookmarks)
         }
     }
 
@@ -95,25 +90,20 @@ class MainViewModel @Inject constructor(
                 null
             }
 
-            pages?.let {
-                _bookmarksList.postValue(it)
+            if (!pages.isNullOrEmpty()) {
+                bookmarksList.set(pages.toMutableList())
             }
 
             try {
                 topPagesRepository.updateLocalStorageFavicons().collect { pageInfo ->
-                    // When a favicon is updated, update that item in LiveData list
-                    val current = _bookmarksList.value?.toMutableList() ?: mutableListOf()
-                    val idx = current.indexOfFirst { it.link == pageInfo.link }
-                    if (idx != -1) {
-                        current[idx] = pageInfo  // replace the updated item
+                    val bookmrks = bookmarksList.get()
+                    val index = bookmrks?.indexOfFirst { it.link == pageInfo.link }
+                    if (index != null && index != -1) {
+                        bookmrks[index] = pageInfo
+                        bookmarksList.set(bookmrks.toMutableList())
                     } else {
-                        current.add(pageInfo)
+                        bookmarksList.set((bookmarksList.get()?.plus(pageInfo))?.toMutableList())
                     }
-                    // Re-index orders
-                    current.forEachIndexed { index, pi ->
-                        pi.order = index
-                    }
-                    _bookmarksList.postValue(current)
                 }
             } catch (e: Throwable) {
                 e.printStackTrace()
@@ -123,12 +113,12 @@ class MainViewModel @Inject constructor(
 
     fun updateBookmarks(bookmarks: List<PageInfo>) {
         viewModelScope.launch(executorMoverSingle) {
-            val updated = bookmarks.mapIndexed { index, pi ->
-                pi.order = index
-                pi
+            val updatedBookMarks = bookmarks.mapIndexed { index, value ->
+                value.order = index
+                value
             }
-            topPagesRepository.replaceBookmarksWith(updated)
-            _bookmarksList.postValue(updated)
+            topPagesRepository.replaceBookmarksWith(updatedBookMarks)
+            bookmarksList.set(bookmarks.toMutableList())
         }
     }
 }

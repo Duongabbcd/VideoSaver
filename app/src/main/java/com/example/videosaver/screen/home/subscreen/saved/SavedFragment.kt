@@ -15,10 +15,10 @@ import com.example.videosaver.utils.Common.gone
 import com.example.videosaver.utils.Common.visible
 import com.example.videosaver.viewmodel.video.VideoViewModel
 import com.google.gson.Gson
-import dagger.hilt.android.AndroidEntryPoint
+ 
 import kotlin.getValue
 
-@AndroidEntryPoint
+ 
 class SavedFragment : BaseFragment<FragmentSavedBinding>(FragmentSavedBinding::inflate) {
     private val viewModel: VideoViewModel by viewModels()
 

@@ -12,7 +12,6 @@ import androidx.lifecycle.lifecycleScope
 import com.example.videosaver.R
 import com.example.videosaver.base.BaseFragment2
 import com.example.videosaver.screen.home.MainActivity
-import com.example.videosaver.screen.home.subscreen.advance.BrowseFragment
 import com.example.videosaver.utils.advance.util.AppLogger
 import com.example.videosaver.utils.advance.util.SharedPrefHelper
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +19,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 abstract class BaseWebTabFragment : BaseFragment2() {
-    val mainActivity = requireActivity() as MainActivity
+    @Inject
+    lateinit var mainActivity: MainActivity
 
     @Inject
     lateinit var sharedPrefHelper: SharedPrefHelper
@@ -43,7 +43,7 @@ abstract class BaseWebTabFragment : BaseFragment2() {
 
             val isAdblockMenuItem = popupMenu!!.menu.getItem(8)
 
-            val isDarkModeItem = popupMenu!!.menu.getItem(9)
+            val isDarkModeItem = popupMenu!!.menu.getItem(8)
             val isDark = mainActivity.settingsViewModel.isDarkMode.get()
             isDarkModeItem.isChecked = isDark
             isDarkModeItem.isEnabled = !mainActivity.settingsViewModel.isAutoDarkMode.get()

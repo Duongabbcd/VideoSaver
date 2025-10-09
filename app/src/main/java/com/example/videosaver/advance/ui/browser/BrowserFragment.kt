@@ -17,7 +17,9 @@ import android.webkit.ServiceWorkerController
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.VisibleForTesting
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.GravityCompat
@@ -32,18 +34,16 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.example.videosaver.advance.BrowserServicesProvider
 import com.example.videosaver.advance.ui.HistoryViewModel
 import com.example.videosaver.advance.ui.browser.detectedVideos.GlobalVideoDetectionModel
 import com.example.videosaver.advance.ui.browser.hometab.BrowserHomeFragment
 import com.example.videosaver.advance.ui.browser.webtab.WebTabFragment
 import com.example.videosaver.advance.ui.setting.SettingsViewModel
 import com.example.videosaver.advance.ui.webtab.WebTab
-import com.example.videosaver.base.BaseFragment
 import com.example.videosaver.R
+import com.example.videosaver.advance.BrowserServicesProvider
 import com.example.videosaver.base.BaseFragment2
 import com.example.videosaver.databinding.FragmentBrowseBinding
-import com.example.videosaver.databinding.FragmentBrowserHomeBinding
 import com.example.videosaver.screen.home.MainActivity
 import com.example.videosaver.screen.home.MainViewModel
 import com.example.videosaver.utils.SingleLiveEvent
@@ -60,7 +60,6 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 
 
 const val HOME_TAB_INDEX = 0
@@ -86,8 +85,8 @@ class BrowserFragment : BaseFragment2(), BrowserServicesProvider {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
-
-    private var mainActivity = requireActivity() as MainActivity
+    @Inject
+    lateinit var mainActivity: MainActivity
 
     @Inject
     lateinit var appUtil: AppUtil
@@ -101,23 +100,22 @@ class BrowserFragment : BaseFragment2(), BrowserServicesProvider {
     @Inject
     lateinit var okHttpProxyClient: OkHttpProxyClient
 
-    lateinit var binding: FragmentBrowserHomeBinding
+    @VisibleForTesting
+    internal lateinit var dataBinding: FragmentBrowseBinding
 
-    private val  browserViewModel: BrowserViewModel  by viewModels()
+    private lateinit var browserViewModel: BrowserViewModel
 
-    private val mainViewModel: MainViewModel  by viewModels()
+    private lateinit var mainViewModel: MainViewModel
 
-    private val  historyModel: HistoryViewModel by viewModels()
+    private lateinit var historyModel: HistoryViewModel
 
-    private val settingsModel: SettingsViewModel by viewModels()
+    private lateinit var settingsModel: SettingsViewModel
 
     private lateinit var videoDetectionModel: GlobalVideoDetectionModel
 
     private val compositeDisposable = CompositeDisposable()
 
     private var backPressedOnce = false
-
-    private lateinit var dataBinding: FragmentBrowseBinding
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -243,20 +241,22 @@ class BrowserFragment : BaseFragment2(), BrowserServicesProvider {
         swController.setServiceWorkerClient(serviceWorkerClient)
         swController.serviceWorkerWebSettings.allowContentAccess = true
 
+        mainViewModel = mainActivity.mainViewModel
+        browserViewModel = ViewModelProvider(this, viewModelFactory)[BrowserViewModel::class.java]
+        historyModel = ViewModelProvider(this, viewModelFactory)[HistoryViewModel::class.java]
         videoDetectionModel =
             ViewModelProvider(this, viewModelFactory)[GlobalVideoDetectionModel::class.java]
 
-
         videoDetectionModel.settingsModel = mainActivity.settingsViewModel
         browserViewModel.settingsModel = mainActivity.settingsViewModel
-
+        settingsModel = mainActivity.settingsViewModel
 
         mainActivity.mainViewModel.browserServicesProvider = this
 
         tabsAdapter = TabsFragmentStateAdapter(emptyList())
 
 //        drawerAdapter = WebTabsAdapter(emptyList(), tabsListener)
-
+//
 //        val webTabsManagerLayout =
 //            WrapContentLinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
 //        webTabsManagerLayout.reverseLayout = true
@@ -275,9 +275,9 @@ class BrowserFragment : BaseFragment2(), BrowserServicesProvider {
             this.viewModel = browserViewModel
         }
 
-//        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
-//            onBackPressed()
-//        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            onBackPressed()
+        }
 
         videoDetectionModel.downloadButtonState.addOnPropertyChangedCallback(object :
             Observable.OnPropertyChangedCallback() {
@@ -336,7 +336,7 @@ class BrowserFragment : BaseFragment2(), BrowserServicesProvider {
         return browserViewModel.currentTab
     }
 
-//    private val tabsListener = object : WebTabListener {
+//    private val tabsListener = object : WebTabsListener {
 //        override fun onCloseTabClicked(webTab: WebTab) {
 //
 //            browserViewModel.closePageEvent.value = webTab
@@ -370,7 +370,7 @@ class BrowserFragment : BaseFragment2(), BrowserServicesProvider {
                 browserViewModel.tabs.get()?.toMutableList() ?: mutableListOf(WebTab.HOME_TAB)
             val tabToClose = tabs.find { it.id == webTab.id }
             val index = tabs.indexOf(tabToClose)
-            if (index in tabs.indices && index != HOME_TAB_INDEX) {
+            if (index in tabs.indices && index !=  HOME_TAB_INDEX) {
                 tabs.removeAt(index)
             }
 
@@ -418,6 +418,26 @@ class BrowserFragment : BaseFragment2(), BrowserServicesProvider {
                 ) { dialog, _ ->
                     dialog.dismiss()
                 }.show()
+        }
+    }
+
+    private fun onBackPressed() {
+        val rootPagerIndex = mainActivity.mainViewModel.currentItem.get() ?: 0
+        if (rootPagerIndex > 0) {
+            mainActivity.mainViewModel.currentItem.set( HOME_TAB_INDEX)
+        }
+        if (rootPagerIndex ==  HOME_TAB_INDEX) {
+            if (backPressedOnce) {
+                requireActivity().finish()
+                return
+            }
+
+            backPressedOnce = true
+            Toast.makeText(requireContext(), "Press Back Again to exit", Toast.LENGTH_SHORT).show()
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                backPressedOnce = false
+            }, 2000)
         }
     }
 
